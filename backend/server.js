@@ -13,6 +13,29 @@ const mainRouter = require('./routes/index');
 
 const app = express();
 
+// CORS configuration
+const allowedOrigins = [
+  'https://student-feedback-frontend-bbir.onrender.com',
+  'https://student-feedback-frontend-i92f.onrender.com',
+  'http://localhost:3000'
+];
+
+// Apply CORS before any middleware or routes
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
 // Security Middleware
 app.use(helmet());
 app.use(mongoSanitize());
@@ -22,28 +45,6 @@ app.use(xss());
 // Body parser before routes
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
-
-// CORS configuration
-const allowedOrigins = [
-  'https://student-feedback-frontend-bbir.onrender.com',
-  'http://localhost:3000'
-];
-
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-  res.header('Access-Control-Allow-Credentials', true);
-  if (req.method === 'OPTIONS') {
-    return res.status(200).json({
-      body: "OK"
-    });
-  }
-  next();
-});
 
 // Request logging
 if (process.env.NODE_ENV === 'development') {
