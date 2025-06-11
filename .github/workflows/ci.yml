@@ -1,4 +1,4 @@
-name: Simple CI
+name: CI/CD Pipeline
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ main, master ]
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -38,3 +38,13 @@ jobs:
       env:
         CI: false
       run: npm run build
+
+    # Deploy to Render (only on push to main/master)
+    - name: Deploy to Render
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+      env:
+        RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+      run: |
+        curl -X POST "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys" \
+        -H "accept: application/json" \
+        -H "authorization: Bearer ${{ secrets.RENDER_API_KEY }}"

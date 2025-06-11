@@ -264,7 +264,7 @@ function Dashboard() {
       ) : (
         <Grid container spacing={3}>
           {feedbacks.map((feedback) => (
-            <Grid item xs={12} md={6} key={feedback._id}>
+            <Grid item xs={12} md={6} key={feedback?._id}>
               <Card elevation={3}>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 2 }}>
@@ -276,36 +276,35 @@ function Dashboard() {
                         height: 56
                       }}
                     >
-                      {feedback.teacher.username.charAt(0)}
+                      {feedback?.teacher?.username?.charAt(0) || '?'}
                     </Avatar>
                     <Box sx={{ flexGrow: 1 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography variant="h6" component="div">
-                          {feedback.subject}
+                          {feedback?.subject || 'No Subject'}
                         </Typography>
                         <Box>
                           <Chip
-                            icon={getStatusIcon(feedback.status)}
-                            label={feedback.status.charAt(0).toUpperCase() + feedback.status.slice(1)}
+                            icon={getStatusIcon(feedback?.status)}
+                            label={(feedback?.status?.charAt(0)?.toUpperCase() + feedback?.status?.slice(1)) || 'Unknown'}
                             sx={{ 
-                              backgroundColor: getStatusColor(feedback.status),
+                              backgroundColor: getStatusColor(feedback?.status),
                               color: '#fff'
                             }}
                             size="small"
                           />
-                          {((user.role === 'student' && feedback.student._id === user.id) ||
-                           (user.role === 'teacher' && feedback.teacher._id === user.id)) && (
+                          {user?.role === 'teacher' && feedback?.teacher?._id === user?.id && (
                             <>
                               <IconButton
                                 size="small"
-                                onClick={(e) => handleMenuOpen(e, feedback._id)}
+                                onClick={(e) => handleMenuOpen(e, feedback?._id)}
                                 sx={{ ml: 1 }}
                               >
                                 <MoreVertIcon />
                               </IconButton>
                               <Menu
                                 anchorEl={anchorEl}
-                                open={Boolean(anchorEl) && selectedFeedbackId === feedback._id}
+                                open={Boolean(anchorEl) && selectedFeedbackId === feedback?._id}
                                 onClose={handleMenuClose}
                               >
                                 <MenuItem onClick={() => handleEdit(feedback)}>
@@ -322,10 +321,10 @@ function Dashboard() {
                         </Box>
                       </Box>
                       <Typography color="textSecondary" gutterBottom>
-                        To: {feedback.teacher.username}
+                        To: {feedback?.teacher?.username || 'Unknown Teacher'}
                       </Typography>
                       <Typography color="textSecondary" gutterBottom>
-                        From: {feedback.student.username}
+                        From: {feedback?.student?.username || 'Unknown Student'}
                       </Typography>
                     </Box>
                   </Box>
@@ -333,13 +332,13 @@ function Dashboard() {
                   <Divider sx={{ my: 2 }} />
                   
                   <Typography variant="body1" sx={{ mb: 2 }}>
-                    {feedback.content}
+                    {feedback?.content || 'No content'}
                   </Typography>
                   
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Rating value={feedback.rating} readOnly precision={0.5} />
+                    <Rating value={feedback?.rating || 0} readOnly precision={0.5} />
                     <Typography variant="caption" color="textSecondary">
-                      {new Date(feedback.createdAt).toLocaleDateString()}
+                      {feedback?.createdAt ? new Date(feedback.createdAt).toLocaleDateString() : 'No date'}
                     </Typography>
                   </Box>
                 </CardContent>
