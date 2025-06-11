@@ -1,26 +1,24 @@
 services:
   # Backend API service
   - type: web
-    name: student-feedback-api
+    name: student-feedback-backend
     env: node
     region: ohio
-    plan: free
-    buildCommand: cd backend && npm install && npm run build
-    startCommand: cd backend && npm start
-    healthCheckPath: /api/health
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && node server.js
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 10000
       - key: MONGODB_URI
         sync: false
       - key: JWT_SECRET
         sync: false
       - key: JWT_EXPIRES_IN
         value: 24h
-      - key: PORT
-        value: 8080
       - key: FRONTEND_URL
-        value: https://student-feedback-frontend.onrender.com
+        value: https://student-feedback-frontend-bbir.onrender.com
     autoDeploy: true
     domains:
       - student-feedback-api.onrender.com
