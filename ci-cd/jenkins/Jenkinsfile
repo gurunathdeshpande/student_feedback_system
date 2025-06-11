@@ -1,0 +1,20 @@
+pipeline {
+    agent any
+    stages {
+        stage('Clone') {
+            steps {
+                git 'https://github.com/yourusername/student-feedback-devops.git'
+            }
+        }
+        stage('Build Docker') {
+            steps {
+                sh 'docker build -t student-feedback-backend -f docker/Dockerfile .'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh 'docker-compose -f docker/docker-compose.yml up -d'
+            }
+        }
+    }
+}

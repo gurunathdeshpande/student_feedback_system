@@ -1,0 +1,14 @@
+{
+  "name": "student-feedback-devops",
+  "version": "1.0.0",
+  "description": "Student Feedback System",
+  "scripts": {
+    "start": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm start\"",
+    "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install",
+    "frontend": "cd frontend && npm start",
+    "backend": "cd backend && npm run dev"
+  },
+  "dependencies": {
+    "concurrently": "^8.0.1"
+  }
+} 

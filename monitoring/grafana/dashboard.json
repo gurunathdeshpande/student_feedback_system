@@ -1,0 +1,18 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Student Feedback Backend",
+    "panels": [
+      {
+        "type": "graph",
+        "title": "Requests per Second",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[1m])",
+            "format": "time_series"
+          }
+        ]
+      }
+    ]
+  }
+}
