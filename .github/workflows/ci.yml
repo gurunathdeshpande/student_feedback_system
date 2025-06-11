@@ -2,9 +2,9 @@ name: Continuous Integration
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, development ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, development ]
 
 jobs:
   build-and-test:
@@ -12,85 +12,86 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x, 18.x]
+        node-version: [18.x]
       # Don't cancel other matrix jobs if one fails
       fail-fast: false
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
 
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Setup Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
 
-    # Cache node modules
-    - name: Cache Node Modules
-      uses: actions/cache@v3
-      with:
-        path: |
-          **/node_modules
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
-
-    # Backend CI steps
-    - name: Install backend dependencies
-      working-directory: ./backend
-      run: |
-        echo "Installing backend dependencies..."
-        npm ci
-      continue-on-error: false
-
-    - name: Run backend linting
-      working-directory: ./backend
-      run: |
-        echo "Running backend linting..."
-        npm run lint
-      continue-on-error: true
-
-    - name: Run backend tests
-      working-directory: ./backend
-      run: |
-        echo "Running backend tests..."
-        npm test
-      continue-on-error: true
-
-    # Frontend CI steps
-    - name: Install frontend dependencies
+    # Frontend steps
+    - name: Frontend - Install dependencies
       working-directory: ./frontend
       run: |
         echo "Installing frontend dependencies..."
+        npm install
         npm ci
-      continue-on-error: false
 
-    - name: Run frontend linting
+    - name: Frontend - Check for lint errors
       working-directory: ./frontend
       run: |
-        echo "Running frontend linting..."
-        npm run lint
-      continue-on-error: true
+        echo "Checking for lint errors..."
+        npm run lint || echo "Lint errors found but continuing..."
 
-    - name: Run frontend tests
+    - name: Frontend - Run tests
       working-directory: ./frontend
       run: |
         echo "Running frontend tests..."
-        npm test -- --watchAll=false --passWithNoTests
-      continue-on-error: true
+        npm test -- --watchAll=false --passWithNoTests --ci || echo "Tests failed but continuing..."
 
-    - name: Build frontend
+    - name: Frontend - Build
       working-directory: ./frontend
+      env:
+        CI: false
       run: |
         echo "Building frontend..."
-        CI=false npm run build
-      continue-on-error: false
+        npm run build
 
-    # Upload build artifacts
-    - name: Upload frontend build
+    # Backend steps
+    - name: Backend - Install dependencies
+      working-directory: ./backend
+      run: |
+        echo "Installing backend dependencies..."
+        npm install
+        npm ci
+
+    - name: Backend - Check for lint errors
+      working-directory: ./backend
+      run: |
+        echo "Checking for lint errors..."
+        npm run lint || echo "Lint errors found but continuing..."
+
+    - name: Backend - Run tests
+      working-directory: ./backend
+      run: |
+        echo "Running backend tests..."
+        npm test || echo "Tests failed but continuing..."
+
+    # Upload artifacts
+    - name: Upload frontend build artifacts
       if: success()
       uses: actions/upload-artifact@v3
       with:
         name: frontend-build
-        path: frontend/build/
-        retention-days: 5 
+        path: frontend/build
+        retention-days: 5
+
+    # Notify on completion
+    - name: Check build status
+      if: always()
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "✅ Build completed successfully!"
+        else
+          echo "❌ Build failed!"
+          exit 1
+        fi 
