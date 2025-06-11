@@ -24,6 +24,7 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
 
 const MotionBox = motion(Box);
 const MotionPaper = motion(Paper);
@@ -59,10 +60,17 @@ function Login() {
     try {
       setError('');
       setLoading(true);
+      console.log('Attempting login with:', { email, apiUrl: axios.defaults.baseURL });
       await login(email, password);
+      console.log('Login successful, navigating to dashboard');
       navigate('/');
     } catch (error) {
-      setError(error.message);
+      console.error('Login error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      setError(error.message || 'Failed to login. Please try again.');
     } finally {
       setLoading(false);
     }

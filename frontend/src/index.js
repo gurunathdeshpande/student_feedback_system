@@ -6,13 +6,21 @@ import App from './App';
 import axios from 'axios';
 
 // Set default axios config
-axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+axios.defaults.baseURL = API_URL;
 axios.defaults.headers.post['Content-Type'] = 'application/json';
 
 // Set up axios interceptors for error handling
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error('API Error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      url: error.config?.url
+    });
+    
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       window.location.href = '/login';

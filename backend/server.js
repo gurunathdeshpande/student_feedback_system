@@ -21,10 +21,10 @@ app.use(xss());
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? 'https://student-feedback-frontend.onrender.com'
-    : 'http://localhost:3000',
+  origin: true,  // Allow all origins temporarily
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Rate limiting
