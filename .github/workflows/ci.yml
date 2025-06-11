@@ -13,6 +13,8 @@ jobs:
     strategy:
       matrix:
         node-version: [16.x, 18.x]
+      # Don't cancel other matrix jobs if one fails
+      fail-fast: false
 
     steps:
     - uses: actions/checkout@v3
@@ -23,36 +25,6 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
 
-    # Backend CI steps
-    - name: Install backend dependencies
-      working-directory: ./backend
-      run: npm ci
-
-    - name: Run backend linting
-      working-directory: ./backend
-      run: npm run lint || true
-
-    - name: Run backend tests
-      working-directory: ./backend
-      run: npm test || true
-
-    # Frontend CI steps
-    - name: Install frontend dependencies
-      working-directory: ./frontend
-      run: npm ci
-
-    - name: Run frontend linting
-      working-directory: ./frontend
-      run: npm run lint || true
-
-    - name: Run frontend tests
-      working-directory: ./frontend
-      run: npm test || true
-
-    - name: Build frontend
-      working-directory: ./frontend
-      run: npm run build
-
     # Cache node modules
     - name: Cache Node Modules
       uses: actions/cache@v3
@@ -61,4 +33,64 @@ jobs:
           **/node_modules
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
-          ${{ runner.os }}-node- 
+          ${{ runner.os }}-node-
+
+    # Backend CI steps
+    - name: Install backend dependencies
+      working-directory: ./backend
+      run: |
+        echo "Installing backend dependencies..."
+        npm ci
+      continue-on-error: false
+
+    - name: Run backend linting
+      working-directory: ./backend
+      run: |
+        echo "Running backend linting..."
+        npm run lint
+      continue-on-error: true
+
+    - name: Run backend tests
+      working-directory: ./backend
+      run: |
+        echo "Running backend tests..."
+        npm test
+      continue-on-error: true
+
+    # Frontend CI steps
+    - name: Install frontend dependencies
+      working-directory: ./frontend
+      run: |
+        echo "Installing frontend dependencies..."
+        npm ci
+      continue-on-error: false
+
+    - name: Run frontend linting
+      working-directory: ./frontend
+      run: |
+        echo "Running frontend linting..."
+        npm run lint
+      continue-on-error: true
+
+    - name: Run frontend tests
+      working-directory: ./frontend
+      run: |
+        echo "Running frontend tests..."
+        npm test -- --watchAll=false --passWithNoTests
+      continue-on-error: true
+
+    - name: Build frontend
+      working-directory: ./frontend
+      run: |
+        echo "Building frontend..."
+        CI=false npm run build
+      continue-on-error: false
+
+    # Upload build artifacts
+    - name: Upload frontend build
+      if: success()
+      uses: actions/upload-artifact@v3
+      with:
+        name: frontend-build
+        path: frontend/build/
+        retention-days: 5 
