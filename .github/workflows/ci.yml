@@ -1,4 +1,4 @@
-name: Continuous Integration
+name: MERN Stack CI
 
 on:
   push:
@@ -9,10 +9,11 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-
+    
     strategy:
       matrix:
         node-version: [18.x]
+        mongodb-version: ['6.0']
       # Don't cancel other matrix jobs if one fails
       fail-fast: false
 
@@ -28,33 +29,10 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
 
-    # Frontend steps
-    - name: Frontend - Install dependencies
-      working-directory: ./frontend
-      run: |
-        echo "Installing frontend dependencies..."
-        npm install
-        npm ci
-
-    - name: Frontend - Check for lint errors
-      working-directory: ./frontend
-      run: |
-        echo "Checking for lint errors..."
-        npm run lint || echo "Lint errors found but continuing..."
-
-    - name: Frontend - Run tests
-      working-directory: ./frontend
-      run: |
-        echo "Running frontend tests..."
-        npm test -- --watchAll=false --passWithNoTests --ci || echo "Tests failed but continuing..."
-
-    - name: Frontend - Build
-      working-directory: ./frontend
-      env:
-        CI: false
-      run: |
-        echo "Building frontend..."
-        npm run build
+    - name: Start MongoDB
+      uses: supercharge/mongodb-github-action@1.10.0
+      with:
+        mongodb-version: ${{ matrix.mongodb-version }}
 
     # Backend steps
     - name: Backend - Install dependencies
@@ -75,6 +53,39 @@ jobs:
       run: |
         echo "Running backend tests..."
         npm test || echo "Tests failed but continuing..."
+      env:
+        CI: true
+        MONGODB_URI: mongodb://localhost:27017/test
+
+    # Frontend steps
+    - name: Frontend - Install dependencies
+      working-directory: ./frontend
+      run: |
+        echo "Installing frontend dependencies..."
+        npm install
+        npm ci
+
+    - name: Frontend - Check for lint errors
+      working-directory: ./frontend
+      run: |
+        echo "Checking for lint errors..."
+        npm run lint || echo "Lint errors found but continuing..."
+
+    - name: Frontend - Run tests
+      working-directory: ./frontend
+      run: |
+        echo "Running frontend tests..."
+        npm test -- --watchAll=false --passWithNoTests --ci
+      env:
+        CI: true
+
+    - name: Frontend - Build
+      working-directory: ./frontend
+      env:
+        CI: false
+      run: |
+        echo "Building frontend..."
+        npm run build
 
     # Upload artifacts
     - name: Upload frontend build artifacts
@@ -94,4 +105,4 @@ jobs:
         else
           echo "❌ Build failed!"
           exit 1
-        fi 
+        fi
