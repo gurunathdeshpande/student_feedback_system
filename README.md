@@ -1,112 +1,82 @@
 # Student Feedback System
 
-A modern web application for managing student feedback with continuous integration and deployment.
+A modern web application for managing student feedback and academic performance tracking.
 
-## CI/CD Setup
+## Continuous Integration
 
-This project uses GitHub Actions for continuous integration and deployment. The following checks are performed on each push and pull request:
+This project uses GitHub Actions for Continuous Integration. The CI pipeline automatically runs on:
+- Every push to main/master branch
+- Every pull request to main/master branch
 
-- Code linting (ESLint)
-- Unit tests with coverage requirements
-- Code quality analysis (SonarCloud)
-- Build verification
-- Docker image building and testing
+### CI Pipeline Steps
 
-### Prerequisites
+1. **Environment Setup**
+   - Uses Ubuntu latest runner
+   - Sets up Node.js (versions 16.x and 18.x)
+   - Configures npm cache
 
-1. GitHub repository secrets:
-   - `SONAR_TOKEN`: SonarCloud authentication token
-   - `DOCKER_USERNAME`: Docker Hub username (for image publishing)
-   - `DOCKER_PASSWORD`: Docker Hub password
-   - Additional environment-specific secrets as needed
+2. **Backend Checks**
+   - Installs dependencies
+   - Runs linting
+   - Executes tests
 
-2. SonarCloud setup:
-   - Create a SonarCloud account
-   - Set up your organization
-   - Update `sonar.organization` in `sonar-project.properties`
+3. **Frontend Checks**
+   - Installs dependencies
+   - Runs linting
+   - Executes tests
+   - Builds the application
 
-### CI Workflow
+### Running Tests Locally
 
-The CI pipeline consists of the following stages:
+Before pushing your changes, you can run the same checks locally:
 
-1. **Code Quality**
-   - Linting (ESLint)
-   - Code formatting (Prettier)
-   - SonarCloud analysis
+**Backend:**
+```bash
+cd backend
+npm install
+npm run lint
+npm test
+```
 
-2. **Testing**
-   - Unit tests
-   - Integration tests
-   - Coverage reports
+**Frontend:**
+```bash
+cd frontend
+npm install
+npm run lint
+npm test
+npm run build
+```
 
-3. **Build**
-   - Frontend build
-   - Backend build
-   - Docker image creation
+## Development Setup
 
-### Local Development
+1. Clone the repository
+2. Install dependencies for both frontend and backend
+3. Set up environment variables
+4. Start the development servers
 
-1. Install dependencies:
-   ```bash
-   npm run install-all
-   ```
+### Backend Setup
+```bash
+cd backend
+npm install
+npm run dev
+```
 
-2. Run tests:
-   ```bash
-   # Frontend
-   cd frontend
-   npm run test
-   npm run test:coverage
+### Frontend Setup
+```bash
+cd frontend
+npm install
+npm start
+```
 
-   # Backend
-   cd backend
-   npm run test
-   npm run test:coverage
-   ```
+## Environment Variables
 
-3. Run linting:
-   ```bash
-   # Frontend
-   cd frontend
-   npm run lint
-   npm run lint:fix
+Create `.env` files in both frontend and backend directories with the necessary environment variables.
 
-   # Backend
-   cd backend
-   npm run lint
-   npm run lint:fix
-   ```
+## Contributing
 
-4. Start development servers:
-   ```bash
-   npm start
-   ```
-
-### Quality Gates
-
-The following quality gates must pass for successful CI:
-
-- Test coverage: 80% minimum
-- No critical or blocker issues in SonarCloud
-- All tests passing
-- No linting errors
-- Successful Docker build and test
-
-### Branch Protection Rules
-
-Set up the following branch protection rules in GitHub:
-
-1. `main` branch:
-   - Require status checks to pass
-   - Require code review
-   - No direct pushes
-   - Up-to-date branch required
-
-2. `develop` branch:
-   - Require status checks to pass
-   - Require code review
-   - Up-to-date branch required
-
-## License
-
-ISC 
+1. Create a new branch for your feature
+2. Make your changes
+3. Ensure all tests pass locally
+4. Create a pull request
+5. Wait for CI checks to pass
+6. Request review 
