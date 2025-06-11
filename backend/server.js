@@ -8,9 +8,8 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 require('dotenv').config();
 
-// Import routes
-const authRoutes = require('./routes/auth');  // Changed from authRoutes
-const feedbackRoutes = require('./routes/feedbackRoutes');
+// Import main router
+const mainRouter = require('./routes/index');
 
 const app = express();
 
@@ -63,6 +62,20 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
+// Root route
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Student Feedback System API',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      feedback: '/api/feedback',
+      health: '/api/health'
+    }
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
@@ -74,9 +87,8 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/feedback', feedbackRoutes);
+// API Routes - Mount the main router at /api
+app.use('/api', mainRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
