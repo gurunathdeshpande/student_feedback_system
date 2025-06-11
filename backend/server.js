@@ -10,7 +10,7 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
 const feedbackRoutes = require('./routes/feedbackRoutes');
-const errorHandler = require('./middleware/error');
+const analyticsRoutes = require('./routes/analyticsRoutes');
 
 const app = express();
 
@@ -44,18 +44,35 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
+// Root route
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Student Feedback System API',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      feedback: '/api/feedback',
+      analytics: '/api/analytics',
+      health: '/api/health'
+    }
+  });
+});
+
 // Health check endpoint for Render
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'success',
     message: 'Server is healthy',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
 
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -68,10 +85,16 @@ app.use((err, req, res, next) => {
 });
 
 // Handle unhandled routes
-app.use('*', (req, res) => {
+app.all('*', (req, res) => {
   res.status(404).json({
     success: false,
-    message: `Cannot find ${req.originalUrl} on this server`
+    message: `Cannot find ${req.originalUrl} on this server`,
+    availableEndpoints: {
+      auth: '/api/auth',
+      feedback: '/api/feedback',
+      analytics: '/api/analytics',
+      health: '/api/health'
+    }
   });
 });
 
@@ -102,6 +125,10 @@ const PORT = process.env.PORT || 8080;
 
 const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV}`);
+  console.log(`CORS origin: ${process.env.NODE_ENV === 'production' 
+    ? 'https://student-feedback-frontend.onrender.com' 
+    : 'http://localhost:3000'}`);
 });
 
 // Handle graceful shutdown
