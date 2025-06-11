@@ -5,32 +5,44 @@ const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema(
   {
-    username: {
+    name: {
       type: String,
-      required: [true, 'Please add a username'],
-      unique: true,
+      required: [true, 'Please provide your name'],
       trim: true,
-      maxlength: [50, 'Username cannot be more than 50 characters'],
+      maxlength: [50, 'Name cannot be more than 50 characters']
     },
     email: {
       type: String,
-      required: [true, 'Please add an email'],
+      required: [true, 'Please provide your email'],
       unique: true,
       match: [
         /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-        'Please add a valid email'
-      ],
+        'Please provide a valid email'
+      ]
     },
     password: {
       type: String,
-      required: [true, 'Please add a password'],
-      minlength: 6,
-      select: false,
+      required: [true, 'Please provide a password'],
+      minlength: [6, 'Password must be at least 6 characters'],
+      select: false
     },
     role: {
       type: String,
-      enum: ['student', 'teacher'],
-      default: 'student',
+      enum: ['student', 'instructor', 'admin'],
+      default: 'student'
+    },
+    department: {
+      type: String,
+      required: [true, 'Please provide your department']
+    },
+    studentId: {
+      type: String,
+      unique: true,
+      sparse: true
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
     },
     firstName: {
       type: String,
@@ -41,31 +53,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
       maxlength: [50, 'Last name cannot be more than 50 characters'],
-    },
-    department: {
-      type: String,
-      required: function() {
-        return this.role === 'teacher';
-      },
-      enum: [
-        'Mathematics',
-        'Physics',
-        'Chemistry',
-        'Biology',
-        'Computer Science',
-        'English',
-        'History',
-        'Geography',
-        'Economics',
-      ],
-    },
-    studentId: {
-      type: String,
-      required: function() {
-        return this.role === 'student';
-      },
-      unique: true,
-      sparse: true,
     },
     academicYear: {
       type: Number,
@@ -78,10 +65,6 @@ const userSchema = new mongoose.Schema(
     profilePicture: {
       type: String,
       default: '',
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
     },
     isActive: {
       type: Boolean,
@@ -111,7 +94,7 @@ userSchema.virtual('fullName').get(function() {
   if (this.firstName && this.lastName) {
   return `${this.firstName} ${this.lastName}`;
   }
-  return this.username;
+  return this.name;
 });
 
 // Virtual for feedback received (for teachers)
@@ -130,7 +113,7 @@ userSchema.virtual('feedbackGiven', {
   count: true,
 });
 
-// Encrypt password before saving
+// Encrypt password using bcrypt
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) {
     next();
@@ -144,13 +127,11 @@ userSchema.methods.getSignedJwtToken = function() {
   return jwt.sign(
     { id: this._id, role: this.role },
     process.env.JWT_SECRET,
-    {
-      expiresIn: process.env.JWT_EXPIRE,
-    }
+    { expiresIn: process.env.JWT_EXPIRE }
   );
 };
 
-// Match password
+// Match user entered password to hashed password in database
 userSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
@@ -191,7 +172,7 @@ userSchema.statics.getStats = async function() {
 
 // Indexes for better query performance
 userSchema.index({ email: 1 });
-userSchema.index({ username: 1 });
+userSchema.index({ name: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ department: 1 });
 userSchema.index({ studentId: 1 });
