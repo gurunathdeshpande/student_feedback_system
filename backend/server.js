@@ -10,7 +10,6 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
 const feedbackRoutes = require('./routes/feedbackRoutes');
-const analyticsRoutes = require('./routes/analyticsRoutes');
 
 const app = express();
 
@@ -53,7 +52,6 @@ app.get('/', (req, res) => {
     endpoints: {
       auth: '/api/auth',
       feedback: '/api/feedback',
-      analytics: '/api/analytics',
       health: '/api/health'
     }
   });
@@ -72,7 +70,6 @@ app.get('/api/health', (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/feedback', feedbackRoutes);
-app.use('/api/analytics', analyticsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -92,7 +89,6 @@ app.all('*', (req, res) => {
     availableEndpoints: {
       auth: '/api/auth',
       feedback: '/api/feedback',
-      analytics: '/api/analytics',
       health: '/api/health'
     }
   });
