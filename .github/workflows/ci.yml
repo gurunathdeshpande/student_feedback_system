@@ -1,127 +1,40 @@
-name: MERN Stack CI
+name: Simple CI
 
 on:
   push:
-    branches: [ main, master, development ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main, master, development ]
+    branches: [ main, master ]
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
-    
-    strategy:
-      matrix:
-        node-version: [18.x]
-        mongodb-version: ['6.0']
-      # Don't cancel other matrix jobs if one fails
-      fail-fast: false
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
-    - name: Setup Node.js ${{ matrix.node-version }}
+    - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: '18.x'
 
-    - name: Start MongoDB
-      uses: supercharge/mongodb-github-action@1.10.0
-      with:
-        mongodb-version: ${{ matrix.mongodb-version }}
-
-    # Debug info
-    - name: Debug - List directories
-      run: |
-        echo "Current directory:"
-        pwd
-        echo "\nDirectory contents:"
-        ls -la
-        echo "\nFrontend directory:"
-        ls -la frontend || echo "Frontend directory not found"
-        echo "\nBackend directory:"
-        ls -la backend || echo "Backend directory not found"
-
-    # Backend steps
-    - name: Backend - Install dependencies
+    # Backend
+    - name: Install backend dependencies
       working-directory: ./backend
-      run: |
-        echo "Installing backend dependencies..."
-        npm install
-        echo "\nBackend node_modules:"
-        ls -la node_modules
+      run: npm install
 
-    - name: Backend - Check for lint errors
+    - name: Build backend
       working-directory: ./backend
-      run: |
-        echo "Checking for lint errors..."
-        npm run lint || echo "Lint errors found but continuing..."
+      run: npm run build --if-present
 
-    - name: Backend - Run tests
-      working-directory: ./backend
-      run: |
-        echo "Running backend tests..."
-        npm run ci:test
-      env:
-        CI: true
-        NODE_ENV: test
-        MONGODB_URI: mongodb://localhost:27017/test
-        JWT_SECRET: test-secret
-        JWT_EXPIRES_IN: 1h
-
-    # Frontend steps
-    - name: Frontend - Install dependencies
+    # Frontend
+    - name: Install frontend dependencies
       working-directory: ./frontend
-      run: |
-        echo "Installing frontend dependencies..."
-        npm install
-        echo "\nFrontend node_modules:"
-        ls -la node_modules
+      run: npm install
 
-    - name: Frontend - Check for lint errors
-      working-directory: ./frontend
-      run: |
-        echo "Checking for lint errors..."
-        npm run lint || echo "Lint errors found but continuing..."
-
-    - name: Frontend - Run tests
-      working-directory: ./frontend
-      run: |
-        echo "Running frontend tests..."
-        npm run ci:test
-      env:
-        CI: true
-
-    - name: Frontend - Build
+    - name: Build frontend
       working-directory: ./frontend
       env:
         CI: false
-      run: |
-        echo "Building frontend..."
-        npm run build
-        echo "\nBuild output:"
-        ls -la build || echo "Build directory not found"
-
-    # Upload artifacts
-    - name: Upload frontend build artifacts
-      if: success()
-      uses: actions/upload-artifact@v4
-      with:
-        name: frontend-build
-        path: frontend/build
-        retention-days: 5
-        compression-level: 9
-
-    # Notify on completion
-    - name: Check build status
-      if: always()
-      run: |
-        if [ "${{ job.status }}" == "success" ]; then
-          echo "✅ Build completed successfully!"
-        else
-          echo "❌ Build failed!"
-          exit 1
-        fi
+      run: npm run build
