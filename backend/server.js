@@ -8,7 +8,8 @@ const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 require('dotenv').config();
 
-const authRoutes = require('./routes/authRoutes');
+// Import routes
+const authRoutes = require('./routes/auth');  // Changed from authRoutes
 const feedbackRoutes = require('./routes/feedbackRoutes');
 
 const app = express();
@@ -18,6 +19,10 @@ app.use(helmet());
 app.use(mongoSanitize());
 // Prevent XSS attacks
 app.use(xss());
+
+// Body parser before routes
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // CORS configuration
 const allowedOrigins = [
@@ -41,12 +46,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// Request logging middleware
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-  console.log('Origin:', req.headers.origin);
-  next();
-});
+// Request logging
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+} else {
+  app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+    next();
+  });
+}
 
 // Rate limiting
 const limiter = rateLimit({
@@ -55,35 +63,13 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Body parser
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
-
-// Development logging
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-}
-
-// Root route
-app.get('/', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'Student Feedback System API',
-    version: '1.0.0',
-    endpoints: {
-      auth: '/api/auth',
-      feedback: '/api/feedback',
-      health: '/api/health'
-    }
-  });
-});
-
-// Health check endpoint for Render
+// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'success',
     message: 'Server is healthy',
     timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
     mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
@@ -124,34 +110,35 @@ mongoose
   .then(() => console.log('MongoDB Connected'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err) => {
-  console.log('UNHANDLED REJECTION! 💥 Shutting down...');
-  console.log(err.name, err.message);
-  process.exit(1);
-});
-
-// Handle uncaught exceptions
-process.on('uncaughtException', (err) => {
-  console.log('UNCAUGHT EXCEPTION! 💥 Shutting down...');
-  console.log(err.name, err.message);
-  process.exit(1);
-});
-
 const PORT = process.env.PORT || 8080;
 
 const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV}`);
-  console.log(`CORS origin: ${process.env.NODE_ENV === 'production' 
-    ? 'https://student-feedback-frontend.onrender.com' 
-    : 'http://localhost:3000'}`);
+  console.log('CORS origins:', allowedOrigins);
 });
 
-// Handle graceful shutdown
+// Graceful shutdown handlers
 process.on('SIGTERM', () => {
-  console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
+  console.log('SIGTERM received. Shutting down gracefully');
   server.close(() => {
-    console.log('💥 Process terminated!');
+    mongoose.connection.close(false, () => {
+      console.log('MongoDB connection closed');
+      process.exit(0);
+    });
   });
+});
+
+process.on('unhandledRejection', (err) => {
+  console.log('UNHANDLED REJECTION! Shutting down...');
+  console.error(err);
+  server.close(() => {
+    process.exit(1);
+  });
+});
+
+process.on('uncaughtException', (err) => {
+  console.log('UNCAUGHT EXCEPTION! Shutting down...');
+  console.error(err);
+  process.exit(1);
 });
