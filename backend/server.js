@@ -21,32 +21,32 @@ app.use(xss());
 
 // CORS configuration
 const allowedOrigins = [
-  'https://student-feedback-frontend-bbir.onrender.com',  // Your frontend URL
-  'http://localhost:3000'  // Local development
+  'https://student-feedback-frontend-bbir.onrender.com',
+  'http://localhost:3000'
 ];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) === -1) {
-      return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'), false);
-    }
-    return callback(null, true);
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', true);
+  if (req.method === 'OPTIONS') {
+    return res.status(200).json({
+      body: "OK"
+    });
+  }
+  next();
+});
 
-// Log all requests in development
-if (process.env.NODE_ENV !== 'production') {
-  app.use((req, res, next) => {
-    console.log(`${req.method} ${req.path} - Origin: ${req.headers.origin}`);
-    next();
-  });
-}
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  console.log('Origin:', req.headers.origin);
+  next();
+});
 
 // Rate limiting
 const limiter = rateLimit({

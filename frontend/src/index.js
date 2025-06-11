@@ -6,15 +6,22 @@ import App from './App';
 import axios from 'axios';
 
 // Set default axios config
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const isProd = process.env.NODE_ENV === 'production';
+const API_URL = isProd 
+  ? 'https://student-feedback-backend.onrender.com'  // Replace with your actual backend URL
+  : 'http://localhost:5000';
+
 axios.defaults.baseURL = API_URL;
 axios.defaults.headers.post['Content-Type'] = 'application/json';
+axios.defaults.withCredentials = true;  // Important for CORS with credentials
 
-// Log the API configuration
-console.log('API Configuration:', {
-  baseURL: axios.defaults.baseURL,
-  environment: process.env.NODE_ENV
-});
+// Log configuration in development
+if (!isProd) {
+  console.log('API Configuration:', {
+    baseURL: axios.defaults.baseURL,
+    environment: process.env.NODE_ENV
+  });
+}
 
 // Set up axios interceptors for error handling
 axios.interceptors.response.use(
