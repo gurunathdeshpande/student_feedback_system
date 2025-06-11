@@ -17,6 +17,7 @@ const app = express();
 const allowedOrigins = [
   'https://student-feedback-frontend-bbir.onrender.com',
   'https://student-feedback-frontend-i92f.onrender.com',
+  'https://student-feedback-backend-q161.onrender.com',
   'http://localhost:3000'
 ];
 
