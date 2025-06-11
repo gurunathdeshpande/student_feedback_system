@@ -6,9 +6,15 @@ import App from './App';
 import axios from 'axios';
 
 // Set default axios config
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 axios.defaults.baseURL = API_URL;
 axios.defaults.headers.post['Content-Type'] = 'application/json';
+
+// Log the API configuration
+console.log('API Configuration:', {
+  baseURL: axios.defaults.baseURL,
+  environment: process.env.NODE_ENV
+});
 
 // Set up axios interceptors for error handling
 axios.interceptors.response.use(
