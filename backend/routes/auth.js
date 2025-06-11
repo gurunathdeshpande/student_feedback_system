@@ -7,12 +7,6 @@ const fs = require('fs');
 const { protect } = require('../middleware/auth');
 const User = require('../models/User');
 const ErrorResponse = require('../utils/errorResponse');
-const {
-  register,
-  login,
-  logout,
-  getMe
-} = require('../controllers/authController');
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -46,14 +40,66 @@ const upload = multer({
 });
 
 // Register user
-router.post('/register', register);
+router.post('/register', async (req, res, next) => {
+  try {
+    const { username, email, password, role } = req.body;
+
+    // Create user
+    const user = await User.create({
+      username,
+      email,
+      password,
+      role: role || 'student'
+    });
+
+    sendTokenResponse(user, 201, res);
+  } catch (err) {
+    next(err);
+  }
+});
 
 // Login user
-router.post('/login', login);
+router.post('/login', async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validate email & password
+    if (!email || !password) {
+      return next(new ErrorResponse('Please provide an email and password', 400));
+    }
+
+    // Check for user
+    const user = await User.findOne({ email }).select('+password');
+
+    if (!user) {
+      return next(new ErrorResponse('Invalid credentials', 401));
+    }
+
+    // Check if password matches
+    const isMatch = await user.matchPassword(password);
+
+    if (!isMatch) {
+      return next(new ErrorResponse('Invalid credentials', 401));
+    }
+
+    sendTokenResponse(user, 200, res);
+  } catch (err) {
+    next(err);
+  }
+});
 
 // Get current logged in user
-router.get('/logout', logout);
-router.get('/me', protect, getMe);
+router.get('/me', protect, async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    res.json({
+      success: true,
+      data: user
+    });
+  } catch (err) {
+    next(err);
+  }
+});
 
 // Update profile
 router.put('/update-profile', protect, async (req, res, next) => {

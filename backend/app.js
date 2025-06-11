@@ -1,60 +1,41 @@
 const express = require('express');
-const dotenv = require('dotenv');
-const morgan = require('morgan');
-const colors = require('colors');
-const cookieParser = require('cookie-parser');
+const mongoose = require('mongoose');
 const cors = require('cors');
-const errorHandler = require('./middleware/error');
-const connectDB = require('./config/db');
-
-// Load env vars
-dotenv.config({ path: './config/config.env' });
-
-// Connect to database
-connectDB();
-
-// Route files
-const auth = require('./routes/auth');
-const feedback = require('./routes/feedback');
+const authRoutes = require('./routes/auth');
+const feedbackRoutes = require('./routes/feedback');
+const analyticsRoutes = require('./routes/analytics');
+require('dotenv').config();
 
 const app = express();
 
-// Body parser
+// Middleware
+app.use(cors());
 app.use(express.json());
 
-// Cookie parser
-app.use(cookieParser());
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('Connected to MongoDB'))
+.catch(err => console.error('MongoDB connection error:', err));
 
-// Dev logging middleware
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-}
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/feedback', feedbackRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
-// Enable CORS
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
-}));
-
-// Mount routers
-app.use('/api/v1/auth', auth);
-app.use('/api/v1/feedback', feedback);
-
-// Error handler
-app.use(errorHandler);
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ 
+    success: false,
+    message: 'Something went wrong!',
+    error: err.message
+  });
+});
 
 const PORT = process.env.PORT || 5000;
-
-const server = app.listen(
-  PORT,
-  console.log(
-    `Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold
-  )
-);
-
-// Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
-  console.log(`Error: ${err.message}`.red);
-  // Close server & exit process
-  server.close(() => process.exit(1));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 }); 
