@@ -3,7 +3,7 @@ services:
   - type: web
     name: student-feedback-api
     env: node
-    buildCommand: cd backend && npm install && npm run build
+    buildCommand: cd backend && npm install
     startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
