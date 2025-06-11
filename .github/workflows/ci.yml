@@ -27,12 +27,23 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'npm'
 
     - name: Start MongoDB
       uses: supercharge/mongodb-github-action@1.10.0
       with:
         mongodb-version: ${{ matrix.mongodb-version }}
+
+    # Debug info
+    - name: Debug - List directories
+      run: |
+        echo "Current directory:"
+        pwd
+        echo "\nDirectory contents:"
+        ls -la
+        echo "\nFrontend directory:"
+        ls -la frontend || echo "Frontend directory not found"
+        echo "\nBackend directory:"
+        ls -la backend || echo "Backend directory not found"
 
     # Backend steps
     - name: Backend - Install dependencies
@@ -40,7 +51,8 @@ jobs:
       run: |
         echo "Installing backend dependencies..."
         npm install
-        npm ci
+        echo "\nBackend node_modules:"
+        ls -la node_modules
 
     - name: Backend - Check for lint errors
       working-directory: ./backend
@@ -52,10 +64,13 @@ jobs:
       working-directory: ./backend
       run: |
         echo "Running backend tests..."
-        npm test || echo "Tests failed but continuing..."
+        npm run ci:test
       env:
         CI: true
+        NODE_ENV: test
         MONGODB_URI: mongodb://localhost:27017/test
+        JWT_SECRET: test-secret
+        JWT_EXPIRES_IN: 1h
 
     # Frontend steps
     - name: Frontend - Install dependencies
@@ -63,7 +78,8 @@ jobs:
       run: |
         echo "Installing frontend dependencies..."
         npm install
-        npm ci
+        echo "\nFrontend node_modules:"
+        ls -la node_modules
 
     - name: Frontend - Check for lint errors
       working-directory: ./frontend
@@ -75,7 +91,7 @@ jobs:
       working-directory: ./frontend
       run: |
         echo "Running frontend tests..."
-        npm test -- --watchAll=false --passWithNoTests --ci
+        npm run ci:test
       env:
         CI: true
 
@@ -86,6 +102,8 @@ jobs:
       run: |
         echo "Building frontend..."
         npm run build
+        echo "\nBuild output:"
+        ls -la build || echo "Build directory not found"
 
     # Upload artifacts
     - name: Upload frontend build artifacts
