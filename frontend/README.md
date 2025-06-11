@@ -1,3 +1,5 @@
-# Student Feedback Frontend
+# Frontend
 
-This is a simple React frontend for collecting student feedback.
+This is the React frontend for the Student Feedback System.
+
+## Testing CI Workflow
