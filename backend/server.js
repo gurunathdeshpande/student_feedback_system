@@ -44,6 +44,15 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
+// Health check endpoint for Render
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    message: 'Server is healthy',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/feedback', feedbackRoutes);
@@ -57,14 +66,21 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// Error handling
-app.use(errorHandler);
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Internal server error',
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
 
 // Handle unhandled routes
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
-    message: `Cannot find ${req.originalUrl} on this server`,
+    message: `Cannot find ${req.originalUrl} on this server`
   });
 });
 

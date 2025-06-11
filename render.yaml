@@ -3,8 +3,11 @@ services:
   - type: web
     name: student-feedback-api
     env: node
-    buildCommand: cd backend && npm install
+    region: ohio
+    plan: free
+    buildCommand: cd backend && npm install && npm run build
     startCommand: cd backend && npm start
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
@@ -16,12 +19,25 @@ services:
         value: 24h
       - key: PORT
         value: 8080
+      - key: FRONTEND_URL
+        value: https://student-feedback-frontend.onrender.com
+    autoDeploy: true
 
   # Frontend static site
   - type: static
     name: student-feedback-frontend
+    env: static
+    region: ohio
     buildCommand: cd frontend && npm install && npm run build
     publishDir: frontend/build
     envVars:
       - key: REACT_APP_API_URL
-        value: https://student-feedback-api.onrender.com/api 
+        value: https://student-feedback-api.onrender.com/api
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html 

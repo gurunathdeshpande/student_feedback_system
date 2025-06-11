@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "build": "echo 'Build step completed'",
     "dev": "nodemon server.js",
     "test": "jest --passWithNoTests --detectOpenHandles",
     "lint": "eslint .",
@@ -36,7 +37,7 @@
     "supertest": "^6.3.3"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.0.0"
   },
   "author": "",
   "license": "ISC"
