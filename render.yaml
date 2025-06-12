@@ -27,13 +27,20 @@ services:
   - type: static
     name: student-feedback-frontend
     env: static
-    buildCommand: cd frontend && npm install && CI=false npm run build
+    buildCommand: |
+      cd frontend
+      npm cache clean --force
+      rm -rf node_modules package-lock.json
+      npm install
+      CI=false GENERATE_SOURCEMAP=false npm run build
     publishDir: frontend/build
     envVars:
       - key: REACT_APP_API_URL
         value: https://student-feedback-backend-q161.onrender.com
       - key: NODE_ENV
         value: production
+      - key: CI
+        value: false
     headers:
       - path: /*
         name: Cache-Control
