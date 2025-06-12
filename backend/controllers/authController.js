@@ -76,7 +76,11 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log('Login attempt for:', email);
+    console.log('Login attempt:', {
+      email,
+      passwordProvided: !!password,
+      timestamp: new Date().toISOString()
+    });
 
     // Validate required fields
     if (!email || !password) {
@@ -96,18 +100,26 @@ exports.login = async (req, res) => {
     }).select('+password');
 
     if (!user) {
-      console.log('User not found');
+      console.log('User not found for email/username:', email);
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
       });
     }
 
-    console.log('User found:', user.email);
+    console.log('User found:', {
+      id: user._id,
+      email: user.email,
+      username: user.username,
+      hasPassword: !!user.password
+    });
 
     // Check password
     const isMatch = await user.comparePassword(password);
-    console.log('Password match result:', isMatch);
+    console.log('Password comparison result:', {
+      isMatch,
+      userId: user._id
+    });
     
     if (!isMatch) {
       return res.status(401).json({
@@ -131,7 +143,11 @@ exports.login = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Login error:', {
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
     res.status(500).json({
       success: false,
       message: 'Error logging in',
