@@ -18,14 +18,14 @@ function App() {
       <ThemeProvider>
         <CssBaseline />
         <Router>
-        <AuthProvider>
-              <Routes>
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route
-                  path="/"
-                  element={
-                    <PrivateRoute>
+          <AuthProvider>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route
+                path="/"
+                element={
+                  <PrivateRoute>
                     <Layout>
                       <Dashboard />
                     </Layout>
@@ -39,33 +39,33 @@ function App() {
                     <Layout>
                       <Analytics />
                     </Layout>
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/feedback/new"
-                  element={
-                    <PrivateRoute>
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/feedback/new"
+                element={
+                  <PrivateRoute>
                     <Layout>
                       <FeedbackForm />
                     </Layout>
-                    </PrivateRoute>
-                  }
-                />
-                <Route
-                  path="/feedback/edit/:id"
-                  element={
-                    <PrivateRoute>
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/feedback/edit/:id"
+                element={
+                  <PrivateRoute>
                     <Layout>
                       <FeedbackForm />
                     </Layout>
-                    </PrivateRoute>
-                  }
-                />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
+                  </PrivateRoute>
+                }
+              />
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
           </AuthProvider>
-          </Router>
+        </Router>
       </ThemeProvider>
     </StyledEngineProvider>
   );

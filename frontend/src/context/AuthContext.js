@@ -93,7 +93,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (username, password) => {
     try {
       const response = await axios.post('/api/login', {
-        username: username.toLowerCase(),
+        email: username.toLowerCase(),
         password
       });
 

@@ -11,39 +11,37 @@ const API_URL = isProd
   ? 'https://student-feedback-backend-q161.onrender.com'  // Current backend URL
   : 'http://localhost:4000';
 
-// Log the API URL configuration
-console.log('API Configuration:', {
-  baseURL: API_URL,
-  environment: process.env.NODE_ENV,
-  REACT_APP_API_URL: process.env.REACT_APP_API_URL
-});
-
+// Configure axios defaults
 axios.defaults.baseURL = API_URL;
+axios.defaults.withCredentials = true;
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 axios.defaults.headers.common['Accept'] = 'application/json';
-axios.defaults.withCredentials = true;
+
+// Log configuration in development
+if (!isProd) {
+  console.log('API Configuration:', {
+    baseURL: API_URL,
+    environment: process.env.NODE_ENV,
+    withCredentials: axios.defaults.withCredentials,
+    headers: axios.defaults.headers.common
+  });
+}
 
 // Set up axios interceptors for error handling
 axios.interceptors.request.use(
   (config) => {
-    // Add timestamp to prevent caching
-    config.params = {
-      ...config.params,
-      _t: Date.now()
-    };
-    // Log request details in development
     if (!isProd) {
       console.log('Making request:', {
         url: config.url,
         method: config.method,
-        baseURL: config.baseURL,
-        headers: config.headers
+        headers: config.headers,
+        withCredentials: config.withCredentials
       });
     }
     return config;
   },
   (error) => {
-    console.error('Request Error:', error);
+    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );

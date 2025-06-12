@@ -1,0 +1,16 @@
+{
+  "root": "build/",
+  "clean_urls": true,
+  "routes": {
+    "/**": "index.html"
+  },
+  "https_only": true,
+  "headers": {
+    "/**": {
+      "Cache-Control": "no-store, no-cache",
+      "Access-Control-Allow-Origin": "*",
+      "Strict-Transport-Security": "max-age=31557600"
+    }
+  },
+  "error_page": "index.html"
+} 

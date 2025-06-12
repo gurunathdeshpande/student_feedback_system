@@ -19,6 +19,24 @@ services:
         value: 24h
       - key: FRONTEND_URL
         value: https://student-feedback-frontend-i92f.onrender.com
+      - key: CORS_ORIGIN
+        value: https://student-feedback-frontend-i92f.onrender.com
+    headers:
+      - path: /*
+        name: Access-Control-Allow-Origin
+        value: https://student-feedback-frontend-i92f.onrender.com
+      - path: /*
+        name: Access-Control-Allow-Methods
+        value: GET,POST,PUT,DELETE,OPTIONS
+      - path: /*
+        name: Access-Control-Allow-Headers
+        value: Content-Type,Authorization,X-Requested-With,Accept
+      - path: /*
+        name: Access-Control-Allow-Credentials
+        value: "true"
+      - path: /*
+        name: Access-Control-Max-Age
+        value: "86400"
     autoDeploy: true
     domains:
       - student-feedback-backend-q161.onrender.com
@@ -44,13 +62,22 @@ services:
     headers:
       - path: /*
         name: Cache-Control
-        value: no-cache
+        value: no-store, no-cache
       - path: /*
         name: Access-Control-Allow-Origin
         value: https://student-feedback-backend-q161.onrender.com
+      - path: /*
+        name: Access-Control-Allow-Methods
+        value: GET,POST,PUT,DELETE,OPTIONS
+      - path: /*
+        name: Access-Control-Allow-Headers
+        value: Content-Type,Authorization,X-Requested-With,Accept
+      - path: /*
+        name: Access-Control-Allow-Credentials
+        value: "true"
     routes:
       - type: rewrite
-        source: /*
+        source: /**
         destination: /index.html
     domains:
       - student-feedback-frontend-i92f.onrender.com 

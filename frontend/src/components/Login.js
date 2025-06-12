@@ -36,7 +36,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: ''
   });
   const theme = useTheme();
@@ -53,11 +53,18 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { username, password } = formData;
+    const { email, password } = formData;
 
     // Validation
-    if (!username || !password) {
+    if (!email || !password) {
       setError('Please fill in all fields');
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
       return;
     }
 
@@ -65,10 +72,11 @@ function Login() {
       setError('');
       setLoading(true);
       
-      await login(username, password);
+      await login(email, password);
       navigate('/');
     } catch (error) {
-      setError(error.message);
+      console.error('Login error:', error);
+      setError(error.message || 'Failed to login. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -216,14 +224,21 @@ function Login() {
                 margin="normal"
                 required
                 fullWidth
-                id="username"
-                label="Username or Email"
-                name="username"
-                autoComplete="username"
+                id="email"
+                label="Email Address"
+                name="email"
+                autoComplete="email"
                 autoFocus
-                value={formData.username}
+                value={formData.email}
                 onChange={handleChange}
-                disabled={loading}
+                error={!!error}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <EmailIcon />
+                    </InputAdornment>
+                  ),
+                }}
               />
 
               <TextField
@@ -237,35 +252,19 @@ function Login() {
                 autoComplete="current-password"
                 value={formData.password}
                 onChange={handleChange}
-                disabled={loading}
+                error={!!error}
                 InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <LockOutlinedIcon color="action" />
-                    </InputAdornment>
-                  ),
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
                         aria-label="toggle password visibility"
                         onClick={() => setShowPassword(!showPassword)}
                         edge="end"
-                        disabled={loading}
                       >
                         {showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
                   ),
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    transition: 'all 0.2s ease-in-out',
-                    '&:hover': {
-                      transform: 'translateY(-1px)',
-                      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                    },
-                  },
                 }}
               />
 

@@ -75,23 +75,23 @@ exports.register = async (req, res) => {
 // @access  Public
 exports.login = async (req, res) => {
   try {
-    const { username, password } = req.body;
-    console.log('Login attempt for username:', username);
+    const { email, password } = req.body;
+    console.log('Login attempt for:', email);
 
     // Validate required fields
-    if (!username || !password) {
+    if (!email || !password) {
       console.log('Missing credentials');
       return res.status(400).json({
         success: false,
-        message: 'Please provide both username/email and password'
+        message: 'Please provide both email and password'
       });
     }
 
-    // Find user by username or email
+    // Find user by email or username
     const user = await User.findOne({
       $or: [
-        { username: username.toLowerCase() },
-        { email: username.toLowerCase() }
+        { email: email.toLowerCase() },
+        { username: email.toLowerCase() }
       ]
     }).select('+password');
 
@@ -103,7 +103,7 @@ exports.login = async (req, res) => {
       });
     }
 
-    console.log('User found:', user.username);
+    console.log('User found:', user.email);
 
     // Check password
     const isMatch = await user.comparePassword(password);
@@ -119,6 +119,7 @@ exports.login = async (req, res) => {
     // Generate token
     const token = generateToken(user._id);
 
+    // Send response
     res.json({
       success: true,
       token,
