@@ -19,12 +19,11 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "GENERATE_SOURCEMAP=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "lint": "eslint src/**/*.{js,jsx,ts,tsx}",
-    "lint:fix": "eslint src/**/*.{js,jsx,ts,tsx} --fix",
-    "ci:test": "react-scripts test --watchAll=false --passWithNoTests --ci"
+    "lint:fix": "eslint src/**/*.{js,jsx,ts,tsx} --fix"
   },
   "eslintConfig": {
     "extends": [

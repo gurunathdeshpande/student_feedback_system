@@ -3,7 +3,53 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 // Configure axios defaults
-axios.defaults.baseURL = 'http://localhost:5000';
+const isProd = process.env.NODE_ENV === 'production';
+const API_URL = isProd 
+  ? 'https://student-feedback-backend-q161.onrender.com'
+  : 'http://localhost:8080';
+
+// Set up axios defaults
+axios.defaults.baseURL = API_URL;
+axios.defaults.headers.common['Content-Type'] = 'application/json';
+axios.defaults.headers.common['Accept'] = 'application/json';
+axios.defaults.withCredentials = true;
+
+// Add request interceptor for debugging
+axios.interceptors.request.use(
+  (config) => {
+    console.log('Making request to:', config.url, {
+      method: config.method,
+      headers: config.headers,
+      data: config.data
+    });
+    return config;
+  },
+  (error) => {
+    console.error('Request error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for debugging
+axios.interceptors.response.use(
+  (response) => {
+    console.log('Response received:', {
+      status: response.status,
+      data: response.data,
+      headers: response.headers
+    });
+    return response;
+  },
+  (error) => {
+    console.error('Response error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      headers: error.response?.headers
+    });
+    return Promise.reject(error);
+  }
+);
 
 const AuthContext = createContext(null);
 
@@ -52,9 +98,20 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      console.log('Making login request to:', `${axios.defaults.baseURL}/api/auth/login`);
-      const response = await axios.post('/api/auth/login', { email, password });
+      console.log('Attempting login with:', { email, baseURL: axios.defaults.baseURL });
       
+      const response = await axios.post('/api/auth/login', { 
+        email, 
+        password 
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      
+      console.log('Login response:', response.data);
+
       if (!response.data.success) {
         throw new Error(response.data.message || 'Login failed');
       }
@@ -65,7 +122,13 @@ export const AuthProvider = ({ children }) => {
       setUser(user);
       return { success: true };
     } catch (error) {
-      console.error('Login request failed:', error.response || error);
+      console.error('Login error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        headers: error.response?.headers,
+        config: error.config
+      });
       const errorMessage = error.response?.data?.message || error.message || 'Login failed. Please check your credentials.';
       throw new Error(errorMessage);
     }

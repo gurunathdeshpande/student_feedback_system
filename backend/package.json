@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js",
+    "dev": "cross-env PORT=4000 MONGODB_URI=mongodb://localhost:27017/student-feedback NODE_ENV=development JWT_SECRET=test-secret-key JWT_EXPIRES_IN=24h nodemon server.js",
     "test": "jest --passWithNoTests"
   },
   "engines": {
