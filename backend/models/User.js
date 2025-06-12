@@ -157,13 +157,9 @@ userSchema.methods.getSignedJwtToken = function() {
 // Compare password method
 userSchema.methods.comparePassword = async function(candidatePassword) {
   try {
-    // Need to select password since it's excluded by default
-    const user = await this.constructor.findById(this._id).select('+password');
-    if (!user) return false;
-    
-    const isMatch = await bcrypt.compare(candidatePassword, user.password);
-    return isMatch;
+    return await bcrypt.compare(candidatePassword, this.password);
   } catch (error) {
+    console.error('Password comparison error:', error);
     return false;
   }
 };

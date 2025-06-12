@@ -1,15 +1,10 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import config from '../config';
 
 // Configure axios defaults
-const isProd = process.env.NODE_ENV === 'production';
-const API_URL = isProd 
-  ? 'https://student-feedback-backend-q161.onrender.com'
-  : 'http://localhost:8080';
-
-// Set up axios defaults
-axios.defaults.baseURL = API_URL;
+axios.defaults.baseURL = config.apiUrl;
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 axios.defaults.headers.common['Accept'] = 'application/json';
 axios.defaults.withCredentials = true;

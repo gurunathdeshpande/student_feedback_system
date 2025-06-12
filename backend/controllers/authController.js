@@ -76,9 +76,11 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
+    console.log('Login attempt for username:', username);
 
     // Validate required fields
     if (!username || !password) {
+      console.log('Missing credentials');
       return res.status(400).json({
         success: false,
         message: 'Please provide both username/email and password'
@@ -94,14 +96,19 @@ exports.login = async (req, res) => {
     }).select('+password');
 
     if (!user) {
+      console.log('User not found');
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
       });
     }
 
+    console.log('User found:', user.username);
+
     // Check password
     const isMatch = await user.comparePassword(password);
+    console.log('Password match result:', isMatch);
+    
     if (!isMatch) {
       return res.status(401).json({
         success: false,
