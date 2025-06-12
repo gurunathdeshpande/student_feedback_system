@@ -16,7 +16,6 @@ const app = express();
 // CORS configuration
 const allowedOrigins = [
   'https://student-feedback-frontend-i92f.onrender.com',  // Current frontend URL
-  'https://student-feedback-frontend.onrender.com',       // New frontend URL
   'http://localhost:3000'
 ];
 
