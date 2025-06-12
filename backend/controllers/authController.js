@@ -1,21 +1,53 @@
 const User = require('../models/User');
-const { generateToken } = require('../middleware/auth');
+const jwt = require('jsonwebtoken');
 
+// Generate JWT Token
+const generateToken = (userId) => {
+  return jwt.sign(
+    { id: userId },
+    process.env.JWT_SECRET || 'your-secret-key',
+    { expiresIn: '30d' }
+  );
+};
+
+// @desc    Register user
+// @route   POST /api/register
+// @access  Public
 exports.register = async (req, res) => {
   try {
-    const { username, password, role } = req.body;
-    
-    const userExists = await User.findOne({ username });
-    if (userExists) {
-      return res.status(400).json({ message: 'Username already exists' });
+    const { username, email, password, role } = req.body;
+
+    // Validate required fields
+    if (!username || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide all required fields'
+      });
     }
 
-    const user = await User.create({
-      username,
-      password,
-      role
+    // Check if user already exists
+    const existingUser = await User.findOne({
+      $or: [{ email: email.toLowerCase() }, { username: username.toLowerCase() }]
     });
 
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: existingUser.email === email.toLowerCase() 
+          ? 'Email already registered' 
+          : 'Username already taken'
+      });
+    }
+
+    // Create user
+    const user = await User.create({
+      username: username.toLowerCase(),
+      email: email.toLowerCase(),
+      password,
+      role: role || 'student'
+    });
+
+    // Generate token
     const token = generateToken(user._id);
 
     res.status(201).json({
@@ -24,28 +56,60 @@ exports.register = async (req, res) => {
       user: {
         id: user._id,
         username: user.username,
+        email: user.email,
         role: user.role
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error creating user', error: error.message });
+    console.error('Register error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error registering user',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
+// @desc    Login user
+// @route   POST /api/login
+// @access  Public
 exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    // Validate required fields
+    if (!username || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide both username/email and password'
+      });
     }
 
+    // Find user by username or email
+    const user = await User.findOne({
+      $or: [
+        { username: username.toLowerCase() },
+        { email: username.toLowerCase() }
+      ]
+    }).select('+password');
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
+
+    // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
     }
 
+    // Generate token
     const token = generateToken(user._id);
 
     res.json({
@@ -54,19 +118,49 @@ exports.login = async (req, res) => {
       user: {
         id: user._id,
         username: user.username,
+        email: user.email,
         role: user.role
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error logging in', error: error.message });
+    console.error('Login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error logging in',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 
+// @desc    Get current user
+// @route   GET /api/me
+// @access  Private
 exports.getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
-    res.json(user);
+    const user = await User.findById(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role
+      }
+    });
   } catch (error) {
-    res.status(500).json({ message: 'Error getting user profile', error: error.message });
+    console.error('Get user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error getting user profile',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 }; 

@@ -35,42 +35,40 @@ function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    username: '',
+    password: ''
+  });
   const theme = useTheme();
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    
-    // Client-side validation
-    const email = data.get('email')?.trim();
-    const password = data.get('password');
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    // Clear error when user starts typing
+    if (error) setError('');
+  };
 
-    if (!email || !password) {
-      setError('Please provide both email and password');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const { username, password } = formData;
+
+    // Validation
+    if (!username || !password) {
+      setError('Please fill in all fields');
       return;
     }
 
-    // Email validation
-    const emailRegex = /^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$/;
-    if (!emailRegex.test(email)) {
-      setError('Please enter a valid email address');
-      return;
-    }
-    
     try {
       setError('');
       setLoading(true);
-      console.log('Attempting login with:', { email, apiUrl: axios.defaults.baseURL });
-      await login(email, password);
-      console.log('Login successful, navigating to dashboard');
+      
+      await login(username, password);
       navigate('/');
     } catch (error) {
-      console.error('Login error:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
-      setError(error.message || 'Failed to login. Please try again.');
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -113,7 +111,7 @@ function Login() {
         },
       }}
     >
-    <Container component="main" maxWidth="xs">
+      <Container component="main" maxWidth="xs">
         <MotionBox
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -150,14 +148,14 @@ function Login() {
                 : '0 8px 32px rgba(31, 38, 135, 0.1)',
             }}
           >
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
                 gap: 2,
-        }}
-      >
+              }}
+            >
               <Avatar
                 sx={{
                   m: 1,
@@ -168,7 +166,7 @@ function Login() {
                 }}
               >
                 <LockOutlinedIcon sx={{ fontSize: 32 }} />
-        </Avatar>
+              </Avatar>
               <Typography
                 component="h1"
                 variant="h4"
@@ -183,12 +181,12 @@ function Login() {
               </Typography>
               <Typography variant="body2" color="text.secondary" align="center">
                 Please sign in to continue to your dashboard
-        </Typography>
+              </Typography>
             </Box>
 
             <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 3 }}>
-              <AnimatePresence mode="wait">
-          {error && (
+              {error && (
+                <AnimatePresence mode="wait">
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -208,50 +206,37 @@ function Login() {
                         },
                       }}
                     >
-              {error}
-            </Alert>
+                      {error}
+                    </Alert>
                   </motion.div>
-          )}
-              </AnimatePresence>
+                </AnimatePresence>
+              )}
 
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="email"
-                label="Email Address"
-            name="email"
-            autoComplete="email"
-            autoFocus
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                id="username"
+                label="Username or Email"
+                name="username"
+                autoComplete="username"
+                autoFocus
+                value={formData.username}
+                onChange={handleChange}
                 disabled={loading}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <EmailIcon color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                    transition: 'all 0.2s ease-in-out',
-                    '&:hover': {
-                      transform: 'translateY(-1px)',
-                      boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                    },
-                  },
-                }}
-          />
+              />
 
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            name="password"
-            label="Password"
+              <TextField
+                margin="normal"
+                required
+                fullWidth
+                name="password"
+                label="Password"
                 type={showPassword ? 'text' : 'password'}
-            id="password"
-            autoComplete="current-password"
+                id="password"
+                autoComplete="current-password"
+                value={formData.password}
+                onChange={handleChange}
                 disabled={loading}
                 InputProps={{
                   startAdornment: (
@@ -284,11 +269,10 @@ function Login() {
                 }}
               />
 
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            disabled={loading}
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
                 sx={{
                   mt: 3,
                   mb: 2,
@@ -307,7 +291,8 @@ function Login() {
                     background: theme.palette.action.disabledBackground,
                   },
                 }}
-          >
+                disabled={loading}
+              >
                 {loading ? (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <CircularProgress size={20} color="inherit" />
@@ -316,10 +301,10 @@ function Login() {
                 ) : (
                   'Sign In'
                 )}
-          </Button>
+              </Button>
 
-          <Grid container justifyContent="flex-end">
-            <Grid item>
+              <Grid container justifyContent="flex-end">
+                <Grid item>
                   <Link
                     component={RouterLink}
                     to="/register"
@@ -334,15 +319,15 @@ function Login() {
                       },
                     }}
                   >
-                {"Don't have an account? Sign Up"}
-              </Link>
-            </Grid>
-          </Grid>
-        </Box>
+                    {"Don't have an account? Sign Up"}
+                  </Link>
+                </Grid>
+              </Grid>
+            </Box>
           </MotionPaper>
         </MotionBox>
       </Container>
-      </Box>
+    </Box>
   );
 }
 
