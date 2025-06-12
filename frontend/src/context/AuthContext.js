@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }) => {
       });
       
       console.log('Login response:', response.data);
-
+      
       if (!response.data.success) {
         throw new Error(response.data.message || 'Login failed');
       }

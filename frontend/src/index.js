@@ -9,7 +9,7 @@ import axios from 'axios';
 const isProd = process.env.NODE_ENV === 'production';
 const API_URL = isProd 
   ? 'https://student-feedback-backend-q161.onrender.com'
-  : 'http://localhost:5000';
+  : 'http://localhost:4000';
 
 axios.defaults.baseURL = API_URL;
 axios.defaults.headers.common['Content-Type'] = 'application/json';

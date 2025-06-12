@@ -17,6 +17,7 @@ const app = express();
 app.use(cors({
   origin: [
     'https://student-feedback-frontend-i92f.onrender.com',
+    'https://student-feedback-frontend.onrender.com',
     'http://localhost:3000'
   ],
   credentials: true,
@@ -115,7 +116,7 @@ mongoose
   .then(() => console.log('MongoDB Connected'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 4000;
 
 const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

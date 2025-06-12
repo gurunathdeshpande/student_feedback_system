@@ -184,7 +184,7 @@ const sendTokenResponse = (user, statusCode, res) => {
 
   res.status(statusCode).json({
     success: true,
-    token,
+      token,
     user: {
       id: user._id,
       username: user.username,
