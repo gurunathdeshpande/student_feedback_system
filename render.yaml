@@ -10,7 +10,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 10000
+        value: 3000
       - key: MONGODB_URI
         sync: false
       - key: JWT_SECRET
@@ -18,10 +18,10 @@ services:
       - key: JWT_EXPIRES_IN
         value: 24h
       - key: FRONTEND_URL
-        value: https://student-feedback-frontend-i92f.onrender.com
+        value: https://student-feedback-frontend.onrender.com
     autoDeploy: true
     domains:
-      - student-feedback-backend-q161.onrender.com
+      - student-feedback-backend.onrender.com
 
   # Frontend static site
   - type: static
@@ -31,7 +31,7 @@ services:
     publishDir: frontend/build
     envVars:
       - key: REACT_APP_API_URL
-        value: https://student-feedback-backend-q161.onrender.com
+        value: https://student-feedback-backend.onrender.com
       - key: NODE_ENV
         value: production
     headers:

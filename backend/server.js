@@ -14,12 +14,22 @@ const mainRouter = require('./routes/index');
 const app = express();
 
 // CORS configuration
+const allowedOrigins = [
+  'https://student-feedback-frontend.onrender.com',
+  'http://localhost:3000'
+];
+
 app.use(cors({
-  origin: [
-    'https://student-feedback-frontend-i92f.onrender.com',
-    'https://student-feedback-frontend.onrender.com',
-    'http://localhost:3000'
-  ],
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      console.log('Origin not allowed:', origin);
+      return callback(null, false);
+    }
+    return callback(null, true);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -44,7 +54,7 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 } else {
   app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.headers.origin}`);
     next();
   });
 }
@@ -62,6 +72,7 @@ app.get('/', (req, res) => {
     success: true,
     message: 'Student Feedback System API',
     version: '1.0.0',
+    environment: process.env.NODE_ENV,
     endpoints: {
       auth: '/api/auth',
       feedback: '/api/feedback',
@@ -116,11 +127,12 @@ mongoose
   .then(() => console.log('MongoDB Connected'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 3000;
 
 const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV}`);
+  console.log(`Allowed Origins: ${allowedOrigins.join(', ')}`);
 });
 
 // Graceful shutdown handlers

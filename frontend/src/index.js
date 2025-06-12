@@ -8,22 +8,20 @@ import axios from 'axios';
 // Set default axios config
 const isProd = process.env.NODE_ENV === 'production';
 const API_URL = isProd 
-  ? 'https://student-feedback-backend-q161.onrender.com'
+  ? process.env.REACT_APP_API_URL || 'https://student-feedback-backend.onrender.com'
   : 'http://localhost:4000';
+
+// Log the API URL configuration
+console.log('API Configuration:', {
+  baseURL: API_URL,
+  environment: process.env.NODE_ENV,
+  REACT_APP_API_URL: process.env.REACT_APP_API_URL
+});
 
 axios.defaults.baseURL = API_URL;
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 axios.defaults.headers.common['Accept'] = 'application/json';
 axios.defaults.withCredentials = true;
-
-// Log configuration in development
-if (!isProd) {
-  console.log('API Configuration:', {
-    baseURL: axios.defaults.baseURL,
-    environment: process.env.NODE_ENV,
-    headers: axios.defaults.headers.common
-  });
-}
 
 // Set up axios interceptors for error handling
 axios.interceptors.request.use(
@@ -33,6 +31,15 @@ axios.interceptors.request.use(
       ...config.params,
       _t: Date.now()
     };
+    // Log request details in development
+    if (!isProd) {
+      console.log('Making request:', {
+        url: config.url,
+        method: config.method,
+        baseURL: config.baseURL,
+        headers: config.headers
+      });
+    }
     return config;
   },
   (error) => {
@@ -49,7 +56,8 @@ axios.interceptors.response.use(
       response: error.response?.data,
       status: error.response?.status,
       url: error.config?.url,
-      method: error.config?.method
+      method: error.config?.method,
+      baseURL: error.config?.baseURL
     });
     
     if (error.response?.status === 401) {
