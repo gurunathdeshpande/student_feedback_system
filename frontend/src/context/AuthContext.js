@@ -75,9 +75,9 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('token');
       if (token) {
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      const response = await axios.get('/api/auth/me');
+        const response = await axios.get('/api/me');
         if (response.data.success) {
-      setUser(response.data.data);
+          setUser(response.data.data);
         } else {
           handleLogout();
         }
@@ -100,14 +100,9 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log('Attempting login with:', { email, baseURL: axios.defaults.baseURL });
       
-      const response = await axios.post('/api/auth/login', { 
+      const response = await axios.post('/api/login', { 
         email, 
         password 
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
       });
       
       console.log('Login response:', response.data);
@@ -125,47 +120,18 @@ export const AuthProvider = ({ children }) => {
       console.error('Login error details:', {
         message: error.message,
         response: error.response?.data,
-        status: error.response?.status,
-        headers: error.response?.headers,
-        config: error.config
+        status: error.response?.status
       });
-      const errorMessage = error.response?.data?.message || error.message || 'Login failed. Please check your credentials.';
-      throw new Error(errorMessage);
+      throw new Error(error.message || 'Login failed');
     }
   };
 
   const register = async (userData) => {
     try {
-      // Validate required fields
-      const requiredFields = ['username', 'email', 'password', 'firstName', 'lastName', 'role'];
-      const missingFields = requiredFields.filter(field => !userData[field]);
-      
-      if (missingFields.length > 0) {
-        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
-      }
-
-      // Role-specific validation
-      if (userData.role === 'student') {
-        if (!userData.studentId || !userData.academicYear) {
-          throw new Error('Student ID and Academic Year are required for students');
-        }
-      } else if (userData.role === 'teacher') {
-        if (!userData.department) {
-          throw new Error('Department is required for teachers');
-        }
-      }
-
-      // Log the data being sent
-      console.log('Sending registration data:', {
-        ...userData,
-        password: '[REDACTED]',
-        confirmPassword: '[REDACTED]'
-      });
-
-      const response = await axios.post('/api/auth/register', userData);
+      const response = await axios.post('/api/register', userData);
       
       if (!response.data.success) {
-        throw new Error(response.data.error || response.data.message || 'Registration failed');
+        throw new Error(response.data.message || 'Registration failed');
       }
 
       const { token, user } = response.data;
@@ -179,8 +145,7 @@ export const AuthProvider = ({ children }) => {
         response: error.response?.data,
         status: error.response?.status
       });
-      const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'Registration failed. Please try again.';
-      throw new Error(errorMessage);
+      throw new Error(error.message || 'Registration failed');
     }
   };
 

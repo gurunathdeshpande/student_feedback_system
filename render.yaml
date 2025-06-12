@@ -18,10 +18,10 @@ services:
       - key: JWT_EXPIRES_IN
         value: 24h
       - key: FRONTEND_URL
-        value: https://student-feedback-frontend.onrender.com
+        value: https://student-feedback-frontend-i92f.onrender.com
     autoDeploy: true
     domains:
-      - student-feedback-backend.onrender.com
+      - student-feedback-backend-q161.onrender.com
 
   # Frontend static site
   - type: static
@@ -31,16 +31,19 @@ services:
     publishDir: frontend/build
     envVars:
       - key: REACT_APP_API_URL
-        value: https://student-feedback-backend.onrender.com
+        value: https://student-feedback-backend-q161.onrender.com
       - key: NODE_ENV
         value: production
     headers:
       - path: /*
         name: Cache-Control
         value: no-cache
+      - path: /*
+        name: Access-Control-Allow-Origin
+        value: https://student-feedback-backend-q161.onrender.com
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
     domains:
-      - student-feedback-frontend.onrender.com 
+      - student-feedback-frontend-i92f.onrender.com 

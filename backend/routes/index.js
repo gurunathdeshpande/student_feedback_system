@@ -11,9 +11,9 @@ const {
 } = require('../controllers/feedbackController');
 
 // Auth routes
-router.post('/auth/register', register);
-router.post('/auth/login', login);
-router.get('/auth/me', protect, getMe);
+router.post('/register', register);
+router.post('/login', login);
+router.get('/me', protect, getMe);
 
 // Feedback routes
 router.route('/feedback')

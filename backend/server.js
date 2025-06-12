@@ -15,7 +15,8 @@ const app = express();
 
 // CORS configuration
 const allowedOrigins = [
-  'https://student-feedback-frontend.onrender.com',
+  'https://student-feedback-frontend-i92f.onrender.com',  // Current frontend URL
+  'https://student-feedback-frontend.onrender.com',       // New frontend URL
   'http://localhost:3000'
 ];
 
@@ -25,8 +26,9 @@ app.use(cors({
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.indexOf(origin) === -1) {
-      console.log('Origin not allowed:', origin);
-      return callback(null, false);
+      console.log('Blocked origin:', origin);
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
     }
     return callback(null, true);
   },

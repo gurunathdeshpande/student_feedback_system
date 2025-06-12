@@ -8,7 +8,7 @@ import axios from 'axios';
 // Set default axios config
 const isProd = process.env.NODE_ENV === 'production';
 const API_URL = isProd 
-  ? process.env.REACT_APP_API_URL || 'https://student-feedback-backend.onrender.com'
+  ? 'https://student-feedback-backend-q161.onrender.com'  // Current backend URL
   : 'http://localhost:4000';
 
 // Log the API URL configuration
